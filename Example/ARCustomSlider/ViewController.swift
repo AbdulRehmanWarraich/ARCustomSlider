@@ -7,18 +7,32 @@
 //
 
 import UIKit
+import ARCustomSlider
 
 class ViewController: UIViewController {
 
+    @IBOutlet var slider: ARSlider!
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        slider.minimumTrackTintColor = .cyan
+        slider.delegate = self
+        slider.handlerImage = UIImage(named: "")
+    }
+}
+
+extension ViewController: ARSliderDelegate {
+    func startDragging(slider: ARSlider) {
+        print("Strat Dragging")
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func endDragging(slider: ARSlider) {
+        print("End Dragging")
     }
+
+    func markSlider(slider: ARSlider, dragged to: Float) {
+        print("markSlider")
+    }
+
 
 }
 

@@ -1,0 +1,16 @@
+PODS:
+  - ARCustomSlider (0.1.0)
+
+DEPENDENCIES:
+  - ARCustomSlider (from `../`)
+
+EXTERNAL SOURCES:
+  ARCustomSlider:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  ARCustomSlider: 1106b895c9c90c7fbf6755f5fe1ea44cc80beff1
+
+PODFILE CHECKSUM: 86d5179e4b993b44410579827f810331dfefac25
+
+COCOAPODS: 1.7.0.beta.2

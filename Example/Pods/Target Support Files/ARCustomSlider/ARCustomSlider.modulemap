@@ -1,0 +1,6 @@
+framework module ARCustomSlider {
+  umbrella header "ARCustomSlider-umbrella.h"
+
+  export *
+  module * { export * }
+}
