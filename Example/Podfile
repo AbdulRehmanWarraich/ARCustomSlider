@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'ARCustomSlider_Example' do
+  pod 'ARCustomSlider', :path => '../'
+
+  target 'ARCustomSlider_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
