@@ -22,7 +22,7 @@ pod 'ARCustomSlider'
 
 ## Author
 
-ar.warraich@outlook.com, abdul.rehman@evampsaanga.com
+ar.warraich@outlook.com,
 
 ## License
 
