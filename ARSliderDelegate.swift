@@ -11,5 +11,4 @@ public protocol ARSliderDelegate: class {
 
     func startDragging(slider: ARSlider)
     func endDragging(slider: ARSlider)
-    func markSlider(slider: ARSlider, dragged to: Float)
 }

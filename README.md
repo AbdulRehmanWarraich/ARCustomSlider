@@ -5,6 +5,12 @@
 [![License](https://img.shields.io/cocoapods/l/ARCustomSlider.svg?style=flat)](https://cocoapods.org/pods/ARCustomSlider)
 [![Platform](https://img.shields.io/cocoapods/p/ARCustomSlider.svg?style=flat)](https://cocoapods.org/pods/ARCustomSlider)
 
+## Overview
+ARCustomSlider is a subclass of `UISlider`. This provide to main functionality.
+1.  Show `ToolTip` which display current value of slide.
+2.  Update slider on base of `TabGesture`.
+
+
 ## Example
 
 To run the example project, clone the repo, and run `pod install` from the Example directory first.

@@ -10,18 +10,28 @@ import UIKit
 open class ARSlider: UISlider {
 
     // MARK:- Properties
-    private var toolTipView: ARSliderToolTipView!
-    open weak var delegate: ARSliderDelegate?
 
+    private lazy var tapGestureRecognizer : UITapGestureRecognizer = { return UITapGestureRecognizer(target: self, action: #selector(ARSlider.gestureAction(_:))) }()
+    private let toolTipViewTag :Int = 121314
+
+    public var toolTipView: ARSliderToolTipView = ARSliderToolTipView(frame: .zero)
+    open weak var delegate: ARSliderDelegate?
+    open var thumbRect: CGRect {
+        let rect = trackRect(forBounds: bounds)
+        return thumbRect(forBounds: bounds, trackRect: rect, value: value)
+    }
+
+    // MARK:- @IBInspectable Properties
     @IBInspectable open var handlerImage: UIImage? {
         didSet {
             setNeedsDisplay()
         }
     }
 
-    var thumbRect: CGRect {
-        let rect = trackRect(forBounds: bounds)
-        return thumbRect(forBounds: bounds, trackRect: rect, value: value)
+    @IBInspectable open var addTabGesture: Bool = false {
+        didSet {
+            tapGestureRecognizer.isEnabled = addTabGesture
+        }
     }
 
     // MARK:- view life circle
@@ -36,35 +46,33 @@ open class ARSlider: UISlider {
     }
 
     // MARK:- local functions
-    func setup() {
-        if (toolTipView == nil) {
-            toolTipView = ARSliderToolTipView(frame: CGRect.zero)
-            toolTipView.backgroundColor = UIColor.clear
+    /** Initialze tool  tip and call to setup slider */
+    private func setup() {
+
+        if self.subviews.contains(toolTipView) == false {
+            toolTipView.tag = toolTipViewTag
+            toolTipView.backgroundColor = .clear
             self.addSubview(toolTipView)
         }
+
         setSlider()
     }
-    ///Set Slider
-    func setSlider() {
+
+    /** Set Slider thump image is assigned and add tab gesture  */
+    private func setSlider() {
         if let image = handlerImage {
             setThumbImage(image, for: .normal)
         }
 
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(ARSlider.gestureAction(_:)))
+        if (self.gestureRecognizers ?? []).contains(tapGestureRecognizer) == false {
+            print("Adding tapGestureRecognizer ")
+            self.addGestureRecognizer(tapGestureRecognizer)
+        }
 
-        self.addGestureRecognizer(tapGestureRecognizer)
     }
 
     // MARK:- UIControl touch event tracking
 
-    /**
-     Check wheter touch should begin or not.
-
-     - parameter touch: UITocuh.
-     - parameter with event: Touch event.
-
-     - returns: Bool.
-     */
     open override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
 
         delegate?.startDragging(slider: self)
@@ -75,14 +83,6 @@ open class ARSlider: UISlider {
         return super.beginTracking(touch, with: event)
     }
 
-    /**
-     Check wheter continue slider tracking or not.
-
-     - parameter touch: UITocuh.
-     - parameter with event: Touch event.
-
-     - returns: Bool.
-     */
     open override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
 
         if toolTipView.alpha != 1.0 {
@@ -99,49 +99,68 @@ open class ARSlider: UISlider {
         return super.continueTracking(touch, with: event)
     }
 
-    /**
-     Cancel slider tracking.
+    open override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+        // Fade out the popoup view
+        delegate?.endDragging(slider: self)
+        fadePopupViewInAndOut(fadeIn: false)
+        super.endTracking(touch, with: event)
+    }
 
-     - parameter with event: Touch event.
-
-     - returns: Void.
-     */
     open override func cancelTracking(with event: UIEvent?) {
         delegate?.endDragging(slider: self)
         super.cancelTracking(with: event)
     }
 
-    /**
-     End slider tracking.
-
-     - parameter touch: UITocuh.
-     - parameter with event: Touch event.
-
-     - returns: Void.
-     */
-    open override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
-        // Fade out the popoup view
-        delegate?.endDragging(slider: self)
-        delegate?.markSlider(slider: self, dragged: value)
-        fadePopupViewInAndOut(fadeIn: false)
-        super.endTracking(touch, with: event)
+    open override func setValue(_ value: Float, animated: Bool) {
+        super.setValue(value, animated: animated)
+        positionAndUpdatePopupView()
+        fadePopupViewInAndOutWith(duration: 0.5)
     }
 
     /**
-    set slider value.
+     Respond to the user action
+     - parameter gestureRecognizer: The gesture recognizer responsible for the action
+     */
+    @objc func gestureAction(_ gestureRecognizer: UIGestureRecognizer) {
 
-    - parameter value: Float.
-    - parameter animated: Bool.
+        if self.isTracking == false &&
+            (gestureRecognizer.state == .ended || gestureRecognizer.state == .changed) {
 
-    - returns: Void.
-    */
-    open override func setValue(_ value: Float, animated: Bool) {
-           super.setValue(value, animated: animated)
-           delegate?.markSlider(slider: self, dragged: value)
-           positionAndUpdatePopupView()
-           fadePopupViewInAndOutWith(duration: 0.5)
-       }
+            let touchPoint = gestureRecognizer.location(in: self)
 
+            let positionOfSlider: CGPoint = self.frame.origin
+            let widthOfSlider: CGFloat = self.frame.size.width
+            let newValue = ((touchPoint.x - positionOfSlider.x) * CGFloat(self.maximumValue) / widthOfSlider)
+
+            self.setValue(Float(newValue), animated: true)
+
+        }
+    }
+}
+
+
+// MARK:- Tool Tip helping functions
+extension ARSlider {
+
+    /**
+     Show popup view for point.
+     - parameter touchPoint: touch point.
+     - returns: Void.
+     */
+    private func checkAndShowPopupView(_ touchPoint : CGPoint){
+        // Check if the knob is touched. Only in this case show the popup-view
+        if thumbRect.contains(touchPoint) &&
+            toolTipView.alpha != 1.0 {
+
+            fadePopupViewInAndOut(fadeIn: true)
+        }
+        positionAndUpdatePopupView()
+    }
+
+    /**
+     Updating position and text value of tool tip.
+     - returns: Void.
+     */
     private func positionAndUpdatePopupView() {
 
         let tRect = thumbRect
@@ -152,10 +171,7 @@ open class ARSlider: UISlider {
 
     /**
      Fade in/out popupview.
-
      - parameter fadeIn: Should fade in or not.
-
-
      - returns: Void.
      */
     private func fadePopupViewInAndOut(fadeIn: Bool) {
@@ -172,10 +188,7 @@ open class ARSlider: UISlider {
 
     /**
      Fade in/out popupview.
-
-     - parameter fadeIn: Should fade in or not.
-
-
+     - parameter duration: Should fade in and not with respect to duration.
      - returns: Void.
      */
     private func fadePopupViewInAndOutWith(duration: Double) {
@@ -193,40 +206,4 @@ open class ARSlider: UISlider {
         })
     }
 
-    /**
-     Show popup view for point.
-
-     - parameter touchPoint: touch point.
-
-     - returns: Void.
-     */
-    private func checkAndShowPopupView(_ touchPoint : CGPoint){
-        // Check if the knob is touched. Only in this case show the popup-view
-        if thumbRect.contains(touchPoint) && toolTipView.alpha != 1.0 {
-            fadePopupViewInAndOut(fadeIn: true)
-        }
-        positionAndUpdatePopupView()
-    }
-
-    /**
-     Respond to the user action
-
-     - parameter gestureRecognizer: The gesture recognizer responsible for the action
-     */
-    @objc func gestureAction(_ gestureRecognizer: UIGestureRecognizer) {
-
-        if self.isTracking == false &&
-            ( (gestureRecognizer.state == UIGestureRecognizer.State.ended ||
-                gestureRecognizer.state == UIGestureRecognizer.State.changed) ) {
-
-            let touchPoint = gestureRecognizer.location(in: self)
-
-            let positionOfSlider: CGPoint = self.frame.origin
-            let widthOfSlider: CGFloat = self.frame.size.width
-            let newValue = ((touchPoint.x - positionOfSlider.x) * CGFloat(self.maximumValue) / widthOfSlider)
-
-            self.setValue(Float(newValue), animated: true)
-
-        }
-    }
 }

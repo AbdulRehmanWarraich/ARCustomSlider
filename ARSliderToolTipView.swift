@@ -7,22 +7,22 @@
 
 import Foundation
 
-class ARSliderToolTipView: UIView {
+open class ARSliderToolTipView: UIView {
     
-    // MARK: properties
-    var font: UIFont = UIFont.systemFont(ofSize: 16) {
+    // MARK:- properties
+    public var font: UIFont = UIFont.systemFont(ofSize: 16) {
         didSet {
             setNeedsDisplay()
         }
     }
     
-    var text: String? {
+    public var text: String? {
         didSet {
             setNeedsDisplay()
         }
     }
     
-    var value: Float {
+    public var value: Float {
         get {
             if let text = text {
                 return Float(text) ?? 0
@@ -34,13 +34,13 @@ class ARSliderToolTipView: UIView {
         }
     }
     
-    var fillColor = UIColor.gray {
+    public var fillColor = UIColor.gray {
         didSet {
             setNeedsDisplay()
         }
     }
     
-    var textColor = UIColor.darkGray {
+    public var textColor = UIColor.darkGray {
         didSet {
             setNeedsDisplay()
         }
